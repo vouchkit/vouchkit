@@ -68,7 +68,7 @@ instance**; its core is a **verifier** for **PID/(Q)EAA** attestations in **SD-J
 ## Roadmap
 
 1. ✅ SD-JWT VC verification core + integrator test kit
-2. OpenID4VP request/response (signed request objects, `direct_post.jwt`, DCQL)
+2. 🚧 OpenID4VP request/response — shipped: signed request objects, `direct_post`, DCQL subset, one-time TTL-bounded transactions, `TestWallet` CI round-trip; next: encrypted responses (`direct_post.jwt`)
 3. Digital Credentials API front-end snippet + session mapping
 4. Trust-anchor resolution (x5c chains, trusted lists) — lands behind the [backend seam](docs/design/backends.md)
 5. Sidecar container (REST) · mdoc format · status-list revocation
