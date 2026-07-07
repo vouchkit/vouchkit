@@ -1,0 +1,28 @@
+# vouchkit
+
+> The wallet-relying-party toolkit for personal-data services: verify EU Digital Identity
+> Wallet presentations (SD-JWT VC, HAIP profile) in pure Python. Apache-2.0. Pre-alpha:
+> verification core + integrator test kit are released; OpenID4VP transport is on the
+> roadmap. `pip install vouchkit`, Python ≥ 3.11, single runtime dependency (cryptography).
+
+Key facts for agents: verification entry point is `vouchkit.verify_sd_jwt_vc(presentation,
+issuer_jwk, expected_aud=..., expected_nonce=...)` returning `VerifiedCredential` (fields:
+issuer, vct, claims, key_binding_verified). Failures are typed subclasses of
+`vouchkit.SdJwtError`: InvalidSignature, DisclosureError, InvalidKeyBinding,
+ExpiredCredential, UnsupportedAlgorithm. Test fixtures come from `vouchkit.testkit`
+(TestIssuer, TestHolder) — never hardcode token strings. Key binding is required by
+default. Never log claims or presentation contents.
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/vouchkit/vouchkit/main/README.md): what it is, quick look, roadmap
+- [PROMPT.md](https://raw.githubusercontent.com/vouchkit/vouchkit/main/PROMPT.md): the agent-executable quickstart — integration steps + required CI tests
+- [Verification core source](https://raw.githubusercontent.com/vouchkit/vouchkit/main/src/vouchkit/sdjwt.py): ~300 lines, the authoritative API reference
+- [Test kit source](https://raw.githubusercontent.com/vouchkit/vouchkit/main/src/vouchkit/testkit.py): TestIssuer/TestHolder for CI without a wallet
+- [Backend seam design](https://raw.githubusercontent.com/vouchkit/vouchkit/main/docs/design/backends.md): optional extension interfaces (trust anchors, receipts, sessions)
+- [CONTRIBUTING](https://raw.githubusercontent.com/vouchkit/vouchkit/main/CONTRIBUTING.md): DCO, adversarial-tests-first, dependency policy
+
+## Optional
+
+- [Adversarial test suite](https://raw.githubusercontent.com/vouchkit/vouchkit/main/tests/test_sdjwt.py): 16 forgery/misuse cases — what a correct integration must reject
+- [Co-maintainer call](https://raw.githubusercontent.com/vouchkit/vouchkit/main/CO-MAINTAINER.md): the project is hiring a co-owner

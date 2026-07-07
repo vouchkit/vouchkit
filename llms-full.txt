@@ -1,0 +1,267 @@
+# vouchkit
+
+**The wallet-relying-party toolkit for personal-data services.**
+
+vouchkit lets a service become a **(wallet-)relying party** for the EU Digital Identity
+Wallet: request and verify wallet presentations with a small, auditable, pure-Python core —
+built for teams that need to accept the EUDI wallet without adopting a JVM stack or a vendor
+runtime.
+
+> **Status: pre-alpha.** The SD-JWT VC verification core and the integrator test kit are
+> implemented and adversarially tested. OpenID4VP transport, the Digital Credentials API
+> front-end, and trust-anchor resolution are in active development. Do not use in production
+> yet — but do try it, file issues, and break it.
+
+## Why vouchkit
+
+- **Easy to integrate.** Pure Python, `pip install vouchkit`, one runtime dependency
+  (`cryptography`). A FastAPI/ASGI integration layer and a language-agnostic sidecar are on
+  the roadmap — one engine, two skins.
+- **Easy to maintain.** Scoped to what the EUDI ARF actually mandates for relying parties
+  (HAIP profile: ES256, `sha-256` disclosures, KB-JWT). No speculative surface.
+- **Easy to verify programmatically.** The test kit ships as public API: mint known-good and
+  deliberately broken presentations in your own CI — no wallet, no trust list, no network.
+  Failures are precise, typed exceptions. Adversarial tests are the spine of the suite.
+- **Nothing that blocks a review.** Apache-2.0 only (the whole dependency tree), DCO instead
+  of a CLA, no telemetry, and a logging discipline that never touches personal data.
+
+## Quick look
+
+```python
+from vouchkit import verify_sd_jwt_vc
+
+result = verify_sd_jwt_vc(
+    presentation,              # <issuer-jwt>~<disclosure>*~<kb-jwt> from the wallet
+    issuer_jwk,                # the issuer key you trust (trust-anchor layer coming)
+    expected_aud="https://rp.example",
+    expected_nonce=session_nonce,
+)
+result.claims                  # only what the user disclosed
+result.key_binding_verified    # True — the wallet proved holder binding
+```
+
+And in your test suite, no wallet required:
+
+```python
+from vouchkit.testkit import TestIssuer, TestHolder
+
+issuer, holder = TestIssuer(), TestHolder()
+jwt, disclosures = issuer.issue({"given_name": "Ada"}, holder_jwk=holder.public_jwk)
+presentation = holder.present(jwt, disclosures, ["given_name"], aud=AUD, nonce=NONCE)
+```
+
+## Vocabulary (per the EUDI Architecture and Reference Framework)
+
+Your service becomes a **relying party**; the thing you deploy is a **relying-party
+instance**; its core is a **verifier** for **PID/(Q)EAA** attestations in **SD-JWT VC**
+(and later ISO mdoc) format, requested over **OpenID4VP**.
+
+## Roadmap
+
+1. ✅ SD-JWT VC verification core + integrator test kit
+2. OpenID4VP request/response (signed request objects, `direct_post.jwt`, DCQL)
+3. Digital Credentials API front-end snippet + session mapping
+4. Trust-anchor resolution (x5c chains, trusted lists)
+5. Sidecar container (REST) · mdoc format · status-list revocation
+
+## We're hiring a co-maintainer
+
+Real co-ownership of a young trust-infrastructure project, with a funded path —
+see [CO-MAINTAINER.md](CO-MAINTAINER.md).
+
+## Contributing
+
+Contributions are welcome under the [Apache License 2.0](LICENSE) with a
+[Developer Certificate of Origin](CONTRIBUTING.md) sign-off (`git commit -s`). No CLA.
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+---
+
+# PROMPT.md — paste this into your coding agent
+
+vouchkit's quickstart is a prompt, not a tutorial. Copy everything below the line into
+Claude Code, Cursor, Copilot, or any coding agent working in your service's repository.
+It scopes the agent to what vouchkit does **today** (pre-alpha: SD-JWT VC verification +
+the integrator test kit — the OpenID4VP transport layer is on the roadmap and not yet
+released).
+
+---
+
+Add EUDI-wallet credential verification to this service using **vouchkit**
+(https://github.com/vouchkit/vouchkit — Apache-2.0, pure Python, `cryptography` is its
+only runtime dependency). Follow these steps exactly:
+
+1. **Install:** add `vouchkit` to the project's dependencies (`pip install vouchkit` /
+   `uv add vouchkit`). Requires Python ≥ 3.11.
+
+2. **Wire verification** where this service receives an SD-JWT VC presentation string
+   (format `<issuer-jwt>~<disclosure>*~<kb-jwt>`):
+
+   ```python
+   from vouchkit import verify_sd_jwt_vc, SdJwtError
+
+   result = verify_sd_jwt_vc(
+       presentation,
+       issuer_jwk,                 # the trusted issuer's P-256 public JWK
+       expected_aud=RP_URL,        # this service's identifier, as challenged
+       expected_nonce=session_nonce,
+   )
+   # result.claims           -> dict of ONLY what the user disclosed
+   # result.key_binding_verified -> must be True in the RP flow
+   ```
+
+   Key binding is required by default — do not pass `require_key_binding=False` in a
+   relying-party flow. Trust-anchor resolution (which issuer keys to trust) is the
+   caller's responsibility in this release; load issuer JWKs from configuration.
+
+3. **Handle failures by type, never by string.** Catch `SdJwtError` subclasses
+   (`InvalidSignature`, `DisclosureError`, `InvalidKeyBinding`, `ExpiredCredential`,
+   `UnsupportedAlgorithm`) and map them to this service's error responses.
+   **Never log presentation contents, disclosed claims, or personal data — log only the
+   exception type.**
+
+4. **Prove the integration in CI** using vouchkit's test kit (no wallet needed):
+
+   ```python
+   from vouchkit.testkit import TestIssuer, TestHolder
+   ```
+
+   Write at least four tests against this service's verification endpoint/function:
+   (a) a valid presentation with key binding verifies and yields exactly the disclosed
+   claims; (b) a presentation with a tampered disclosure is rejected; (c) a wrong
+   `nonce` is rejected; (d) an expired credential is rejected. Mint all fixtures with
+   `TestIssuer`/`TestHolder` — never hardcode token strings.
+
+5. **Run the test suite** and report results. If anything in vouchkit's API surprises
+   you, read `src/vouchkit/sdjwt.py` in its repository — it is ~300 lines and is the
+   authoritative reference.
+
+Constraints: do not add other new dependencies; do not weaken key-binding or expiry
+checks; do not catch the base `Exception` around verification.
+
+---
+
+# Backend seam — optional extension interfaces
+
+**Status:** design, v1 (2026-07). This document fixes the extension seam *before* the session
+layer is built, so everything above the verification core programs against interfaces, never
+against any particular provider.
+
+## Principles
+
+1. **The core stays a pure function.** `verify_sd_jwt_vc` does no I/O, ever. Everything with
+   a lifecycle — key fetching, receipt recording, session issuance — lives behind a backend
+   interface with a local default.
+2. **Local-first defaults.** vouchkit is complete without any hosted service: static trust
+   anchors from configuration, no-op receipts, in-process sessions. A deployment that never
+   configures a backend never makes a network call.
+3. **Backends are pluggable packages, not forks.** Third-party backends ship as separate
+   pip packages registering entry points in the `vouchkit.backends` group; the core never
+   imports, vendors, or special-cases any of them. Hosted providers (for example the
+   LifeCare network's consent-infrastructure backend) implement the same interfaces the
+   local defaults do — same tests, same docs, no privileged hooks.
+4. **Zero personal data by default.** Backend interfaces receive verification *events*
+   (issuer, vct, disclosed-claim *names*, timestamps, outcome) — never claim *values* —
+   unless the relying party explicitly opts a backend into claim access in its own
+   configuration. Log discipline follows the same rule.
+
+## Interfaces (Python `Protocol`s; shipped with the session layer)
+
+### 1. `TrustAnchorSource`
+*Who do we trust to issue credentials?*
+```python
+class TrustAnchorSource(Protocol):
+    def resolve(self, issuer: str, kid: str | None) -> dict:  # returns a public JWK
+        ...
+```
+Default: `StaticTrustAnchors` (JWKs from config). Future implementations: EU trusted-list
+resolvers, x5c chain validation, managed update feeds. This is the interface the trust-anchor
+roadmap item lands behind.
+
+### 2. `ReceiptSink`
+*What record exists that this verification happened, and on what terms?*
+```python
+class ReceiptSink(Protocol):
+    def record(self, event: VerificationEvent) -> None:  # fire-and-forget, must never block verification
+        ...
+```
+Default: `NoopReceipts`. A local audit implementation (`JsonlReceipts`, claim-names-only) ships
+with the core. Consent-infrastructure backends may implement `record` as the issuance of a
+standards-based consent receipt (ISO/IEC 27560-shaped) into their own ledger — enabling an RP
+to prove, later, what it verified and under which purpose. A `ReceiptSink` failure must never
+fail or delay the verification result.
+
+### 3. `SessionIssuer`
+*How does a verified presentation become an application session?*
+```python
+class SessionIssuer(Protocol):
+    def issue(self, credential: VerifiedCredential, *, context: SessionContext) -> Session:
+        ...
+```
+Default: `LocalSessions` (signed cookie / app-managed). The OpenID4VP session layer (roadmap
+item 2–3) builds exclusively against this interface.
+
+## Configuration convention
+
+```toml
+[vouchkit]
+trust_anchors = "static"      # or an installed backend's entry-point name
+receipts      = "noop"        # "jsonl", or e.g. "lifecare"
+sessions      = "local"
+```
+Resolution order: built-in defaults → installed entry points (`vouchkit.backends`). Unknown
+names fail loudly at startup, never silently at request time.
+
+## Non-goals
+
+- No backend may alter verification semantics: what is accepted or rejected is decided by the
+  core alone, identically for every deployment.
+- No telemetry, no phone-home, no default-on network dependency — a backend is always an
+  explicit operator choice.
+
+---
+# API reference (authoritative source: src/vouchkit/sdjwt.py)
+
+"""SD-JWT VC verification core (verifier/RP role).
+
+Implements verification of an SD-JWT VC presentation per the IETF SD-JWT family
+(selective disclosure via `_sd` digest arrays, `sha-256` disclosure hashing, KB-JWT
+key binding) restricted to what the EUDI HAIP profile mandates for relying parties:
+
+- issuer JWT signed with ES256 (P-256); `none`/HMAC and unknown algs are rejected
+- disclosures are matched by digest, recursively (object claims and array elements)
+- every supplied disclosure MUST be consumed (dangling disclosures are rejected)
+- duplicate digests and claim-name collisions are rejected
+- key binding (KB-JWT): `typ=kb+jwt`, holder key from `cnf.jwk`, `aud`/`nonce`
+  checked against verifier expectations, `sd_hash` recomputed over the presentation
+
+Trust-anchor resolution (which issuer keys to trust, x5c chains, trusted lists) is a
+separate layer above this module: callers pass the issuer JWK they already trust.
+"""
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import json
+import time
+from dataclasses import dataclass, field
+from typing import Any
+
+from cryptography.exceptions import InvalidSignature as _CryptoInvalidSignature
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric.utils import (
+    decode_dss_signature,
+    encode_dss_signature,
+)
+
+__all__ = [
+    "SdJwtError",
+    "InvalidSignature",
+    "UnsupportedAlgorithm",
+    "DisclosureError",
+    "InvalidKeyBinding",

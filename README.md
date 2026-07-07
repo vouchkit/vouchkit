@@ -50,6 +50,15 @@ jwt, disclosures = issuer.issue({"given_name": "Ada"}, holder_jwk=holder.public_
 presentation = holder.present(jwt, disclosures, ["given_name"], aud=AUD, nonce=NONCE)
 ```
 
+## For AI coding agents
+
+vouchkit is built agent-first: the quickstart is a prompt. Paste [PROMPT.md](PROMPT.md) into
+Claude Code, Cursor, or Copilot inside your service's repo and it will integrate verification
+and write the required CI tests against the bundled test kit. [`llms.txt`](llms.txt) /
+[`llms-full.txt`](llms-full.txt) give agents a clean map of the docs. Errors are typed, the
+core is ~300 readable lines, and the test kit means an agent can *prove* its integration
+without a wallet.
+
 ## Vocabulary (per the EUDI Architecture and Reference Framework)
 
 Your service becomes a **relying party**; the thing you deploy is a **relying-party
@@ -61,7 +70,7 @@ instance**; its core is a **verifier** for **PID/(Q)EAA** attestations in **SD-J
 1. ✅ SD-JWT VC verification core + integrator test kit
 2. OpenID4VP request/response (signed request objects, `direct_post.jwt`, DCQL)
 3. Digital Credentials API front-end snippet + session mapping
-4. Trust-anchor resolution (x5c chains, trusted lists)
+4. Trust-anchor resolution (x5c chains, trusted lists) — lands behind the [backend seam](docs/design/backends.md)
 5. Sidecar container (REST) · mdoc format · status-list revocation
 
 ## We're hiring a co-maintainer
