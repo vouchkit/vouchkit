@@ -128,3 +128,42 @@ class TestHolder:
         }
         kb_jwt = _sign_jwt({"alg": "ES256", "typ": "kb+jwt"}, kb_payload, self.key)
         return prefix + kb_jwt
+
+
+@dataclass
+class TestWallet:
+    """A stand-in wallet for the OpenID4VP flow: consumes a verifier's request
+    object and produces the `direct_post` form a real wallet would POST. Lets a
+    relying party run the *entire* sign-in round-trip in CI."""
+
+    __test__ = False  # public test-kit API, not a pytest collectable
+
+    holder: TestHolder = None  # type: ignore[assignment]
+
+    def __post_init__(self) -> None:
+        if self.holder is None:
+            self.holder = TestHolder()
+
+    @property
+    def public_jwk(self) -> dict[str, Any]:
+        return self.holder.public_jwk
+
+    def respond(
+        self,
+        request_object: dict[str, Any],
+        issuer_jwt: str,
+        disclosures: dict[str, str],
+        reveal: list[str],
+    ) -> dict[str, str]:
+        query_id = request_object["dcql_query"]["credentials"][0]["id"]
+        presentation = self.holder.present(
+            issuer_jwt,
+            disclosures,
+            reveal,
+            aud=request_object["client_id"],
+            nonce=request_object["nonce"],
+        )
+        return {
+            "vp_token": json.dumps({query_id: [presentation]}),
+            "state": request_object["state"],
+        }
