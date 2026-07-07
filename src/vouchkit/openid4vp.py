@@ -86,7 +86,11 @@ class QueryNotSatisfied(OpenId4VpError):
 
 @dataclass(frozen=True)
 class CredentialQuery:
-    """Minimal DCQL credential query: one SD-JWT VC type + required claims."""
+    """Minimal DCQL credential query: one SD-JWT VC type + required claims.
+
+    `vct="*"` accepts any SD-JWT VC type: the DCQL query carries no `meta`
+    constraint and the post-verification vct check is skipped. Use for RPs
+    that accept multiple credential types (or during interop discovery)."""
 
     id: str
     vct: str
@@ -96,8 +100,9 @@ class CredentialQuery:
         query: dict[str, Any] = {
             "id": self.id,
             "format": "dc+sd-jwt",
-            "meta": {"vct_values": [self.vct]},
         }
+        if self.vct != "*":
+            query["meta"] = {"vct_values": [self.vct]}
         if self.claims:
             query["claims"] = [{"path": [name]} for name in self.claims]
         return query
@@ -235,7 +240,7 @@ class Verifier:
             self._record(str(issuer), None, frozenset(), outcome=type(exc).__name__)
             raise
 
-        if credential.vct != tx.query.vct:
+        if tx.query.vct != "*" and credential.vct != tx.query.vct:
             self._record(credential.issuer, credential.vct, credential.disclosed_names, "QueryNotSatisfied")
             raise QueryNotSatisfied(f"vct {credential.vct!r} does not match the query")
         missing = set(tx.query.claims) - set(credential.disclosed_names)
