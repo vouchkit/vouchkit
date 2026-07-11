@@ -7,9 +7,11 @@ Wallet: request and verify wallet presentations with a small, auditable, pure-Py
 built for teams that need to accept the EUDI wallet without adopting a JVM stack or a vendor
 runtime.
 
-> **Status: pre-alpha.** The SD-JWT VC verification core and the integrator test kit are
-> implemented and adversarially tested. OpenID4VP transport, the Digital Credentials API
-> front-end, and trust-anchor resolution are in active development. Do not use in production
+> **Status: pre-alpha.** The SD-JWT VC verification core, the integrator test kit, and the
+> OpenID4VP verifier-side transport are implemented and adversarially tested; the transport
+> has been exercised against the EUDI reference wallet in a manual on-device session (see
+> [docs/interop](docs/interop/eudi-reference-wallet-2026-07.md)). The Digital Credentials API
+> front-end and trust-anchor resolution are in active development. Do not use in production
 > yet — but do try it, file issues, and break it.
 
 ## Why vouchkit
