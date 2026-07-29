@@ -1,4 +1,4 @@
-# We're looking for a co-maintainer
+# We're looking for a co-owner
 
 vouchkit is young — a verification core, a test kit, and a roadmap toward the full
 wallet-relying-party toolkit for the EU Digital Identity Wallet ecosystem. We want a second
