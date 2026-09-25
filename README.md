@@ -75,10 +75,10 @@ instance**; its core is a **verifier** for **PID/(Q)EAA** attestations in **SD-J
 4. Trust-anchor resolution (x5c chains, trusted lists) — lands behind the [backend seam](docs/design/backends.md)
 5. Sidecar container (REST) · mdoc format · status-list revocation
 
-## We're hiring a co-maintainer
+## We're looking for a co-owner
 
-Real co-ownership of a young trust-infrastructure project, with a funded path —
-see [CO-MAINTAINER.md](CO-MAINTAINER.md).
+Real co-ownership of a young trust-infrastructure project, unfunded today.
+See [CO-MAINTAINER.md](CO-MAINTAINER.md).
 
 ## Contributing
 
