@@ -13,11 +13,12 @@ identity community.
 - **The work right now:** the OpenID4VP request/response layer (signed request objects,
   `direct_post.jwt`, DCQL), the Digital Credentials API front-end, trust-anchor resolution,
   and a live round-trip against the EUDI reference wallet.
-- **Funded path:** we are preparing a German **Prototype Fund** application (up to €95k for a
-  6-month team project, window Oct–Nov 2026) with vouchkit's wallet sign-in track as the work
-  plan. A German-resident co-maintainer would be the application lead. All funded deliverables
-  are open source. Until a grant lands, this is part-time, mission-driven OSS work — we say
-  that plainly.
+- **Funding, stated plainly:** the project is **unfunded today**. No grant, corporate or
+  institutional money has ever come in, and everything published so far was built on unpaid
+  time. We are pursuing European public funding for open-source infrastructure for the wallet
+  sign-in track; nothing is awarded, and we will say so here when that changes. Any funded
+  deliverable lands in this repository under Apache-2.0. Until then this is part-time,
+  mission-driven OSS work.
 
 ## Who we're looking for
 
@@ -26,15 +27,16 @@ identity community.
 - EUDI / eIDAS 2.0 exposure is ideal: OpenID4VP/OpenID4VCI, SD-JWT VC, or wallet-ecosystem
   work.
 - Open-source working style: PRs, review discipline, adversarial tests first, DCO.
-- **German residency + freelance status** makes you eligible to lead the Prototype Fund
-  application — valuable but not required for the role itself.
+- **Residency is not a requirement for the role.** Some of the public-funding routes open to a
+  project like this one are German or EU-resident programmes, so residency there can matter for
+  a future application. It has no bearing on co-ownership.
 
 ## Context
 
 vouchkit is the open foundation under the LifeCare network (a commercial consent platform —
 stated up front: this repo is Apache-2.0 forever and complete on its own; the commercial
-network is a separate thing that builds on it). Neutral-foundation stewardship of this project
-is planned.
+network is a separate thing that builds on it). Placing this project under neutral-foundation
+stewardship is our **intention**; no arrangement exists yet, and no steward has been engaged.
 
 ## Interested?
 
