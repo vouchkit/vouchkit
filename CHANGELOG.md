@@ -10,8 +10,9 @@ carry breaking changes while the API stabilizes).
 ### Fixed
 
 Three verifier checks that accepted inputs the specifications call on a verifier to refuse,
-reported privately against 0.0.2 by an external researcher running public negative test
-vectors offline. None is a signature forgery; each needed a non-conforming issuer or wallet.
+reported privately against 0.0.2 by Egor Khaklin ([EgorKhaklin](https://github.com/EgorKhaklin)),
+who ran public negative test vectors against it offline. None is a signature forgery; each
+needed a non-conforming issuer or wallet.
 
 - **Validity claims hidden in a disclosure.** `exp`, `nbf` and `iss` were read from the clear
   issuer-signed payload before disclosures were resolved, so an issuer that placed one of
