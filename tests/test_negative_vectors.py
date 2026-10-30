@@ -4,7 +4,6 @@ Written by an independent checker agent against the fix branch, held back from t
 until the fix was complete (2026-10-28), then adopted as a CI fixture. Every vector is a
 presentation a relying party must refuse, or a conforming edge case it must still accept.
 """
-import json
 import secrets
 
 import pytest
