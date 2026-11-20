@@ -32,7 +32,7 @@ dependencies = ["cryptography>=42"]
 Repository = "https://github.com/vouchkit/vouchkit"
 
 [dependency-groups]
-dev = ["pytest>=8.3"]
+dev = ["pytest>=8.3", "ruff==0.8.6"]
 
 [build-system]
 requires = ["hatchling"]
@@ -40,6 +40,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vouchkit"]
+
+[tool.ruff.lint.per-file-ignores]
+# the negative-vector tables favour one-line cases
+"tests/*" = ["E702", "E731"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
